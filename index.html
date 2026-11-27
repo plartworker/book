@@ -1,965 +1,1117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeFlow | Visual Development Platform</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>脉动资讯 PulseNews - 7×24小时全球实时新闻门户</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts: Noto Sans SC & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 配置 Tailwind 自定义主题与暗黑模式 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '"Noto Sans SC"', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* 自定义滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
-        
-        body {
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f9fbfd;
+        ::-webkit-scrollbar-track {
+            background: transparent;
         }
-        
-        h1, h2, h3, h4 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            line-height: 1.3;
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 9999px;
         }
-        
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.7);
         }
-        
-        /* Header & Navigation */
-        header {
-            background-color: #fff;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            position: fixed;
-            width: 100%;
-            z-index: 1000;
+
+        /* 突发新闻无缝横向滚动动画 */
+        @keyframes tickerScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
         }
-        
-        nav {
+        .animate-ticker {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
+            width: max-content;
+            animation: tickerScroll 35s linear infinite;
         }
-        
-        .logo {
-            display: flex;
-            align-items: center;
+        .animate-ticker:hover {
+            animation-play-state: paused;
         }
-        
-        .logo-icon {
-            color: #4361ee;
-            font-size: 28px;
-            margin-right: 10px;
+
+        /* 新消息滑入动画 */
+        @keyframes slideDownFade {
+            0% {
+                opacity: 0;
+                transform: translateY(-16px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        .logo-text {
-            font-family: 'Poppins', sans-serif;
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
+        .animate-slide-in {
+            animation: slideDownFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        
-        .logo-text span {
-            color: #4361ee;
-        }
-        
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-        
-        .nav-links li {
-            margin-left: 30px;
-        }
-        
-        .nav-links a {
-            text-decoration: none;
-            color: #555;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        
-        .nav-links a:hover {
-            color: #4361ee;
-        }
-        
-        .cta-button {
-            background-color: #4361ee;
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        
-        .cta-button:hover {
-            background-color: #3a56d4;
-            transform: translateY(-2px);
-        }
-        
-        .mobile-menu-btn {
+
+        /* 隐藏横向导航滚动条但保留滚动功能 */
+        .no-scrollbar::-webkit-scrollbar {
             display: none;
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #333;
-            cursor: pointer;
         }
-        
-        /* Hero Section */
-        .hero {
-            padding: 150px 0 100px;
-            background: linear-gradient(135deg, #f0f4ff 0%, #f9fbfd 100%);
-        }
-        
-        .hero-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .hero-text {
-            flex: 1;
-            padding-right: 40px;
-        }
-        
-        .hero-text h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: #222;
-        }
-        
-        .hero-text h1 span {
-            color: #4361ee;
-        }
-        
-        .hero-text p {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 30px;
-            max-width: 600px;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .secondary-button {
-            background-color: white;
-            color: #4361ee;
-            border: 2px solid #4361ee;
-            padding: 12px 28px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .secondary-button:hover {
-            background-color: #f0f4ff;
-        }
-        
-        .hero-image {
-            flex: 1;
-            text-align: center;
-        }
-        
-        .hero-image img {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.15);
-        }
-        
-        /* Features Section */
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .section-title h2 {
-            font-size: 36px;
-            color: #222;
-            margin-bottom: 15px;
-        }
-        
-        .section-title p {
-            color: #666;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .features {
-            padding: 100px 0;
-            background-color: white;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-        
-        .feature-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .feature-icon {
-            background-color: #eef2ff;
-            color: #4361ee;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-        
-        .feature-card h3 {
-            font-size: 22px;
-            margin-bottom: 15px;
-        }
-        
-        .feature-card p {
-            color: #666;
-        }
-        
-        /* Benefits Section */
-        .benefits {
-            padding: 100px 0;
-            background-color: #f0f4ff;
-        }
-        
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        
-        .benefit-item {
-            text-align: center;
-            padding: 30px 20px;
-        }
-        
-        .benefit-icon {
-            color: #4361ee;
-            font-size: 40px;
-            margin-bottom: 20px;
-        }
-        
-        .benefit-item h3 {
-            font-size: 22px;
-            margin-bottom: 15px;
-        }
-        
-        .benefit-item p {
-            color: #666;
-        }
-        
-        /* Testimonials */
-        .testimonials {
-            padding: 100px 0;
-            background-color: white;
-        }
-        
-        .testimonial-slider {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .testimonial {
-            background: #f9fbfd;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .testimonial-text {
-            font-size: 18px;
-            font-style: italic;
-            margin-bottom: 30px;
-            color: #555;
-        }
-        
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .author-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: #ddd;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #4361ee;
-            font-size: 24px;
-        }
-        
-        .author-info h4 {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-        
-        .author-info p {
-            color: #777;
-            font-size: 14px;
-        }
-        
-        /* Pricing Section */
-        .pricing {
-            padding: 100px 0;
-            background-color: #f9fbfd;
-        }
-        
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-        }
-        
-        .pricing-card {
-            background: white;
-            border-radius: 10px;
-            padding: 40px 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            transition: transform 0.3s;
-        }
-        
-        .pricing-card.featured {
-            border-top: 5px solid #4361ee;
-            transform: scale(1.05);
-            position: relative;
-        }
-        
-        .featured-badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #4361ee;
-            color: white;
-            padding: 5px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .pricing-card:hover {
-            transform: translateY(-10px);
-        }
-        
-        .pricing-card.featured:hover {
-            transform: scale(1.05) translateY(-10px);
-        }
-        
-        .plan-name {
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .plan-price {
-            font-size: 48px;
-            font-weight: 700;
-            color: #4361ee;
-            margin-bottom: 20px;
-        }
-        
-        .plan-price span {
-            font-size: 16px;
-            color: #777;
-        }
-        
-        .plan-features {
-            list-style: none;
-            margin-bottom: 30px;
-        }
-        
-        .plan-features li {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            color: #555;
-        }
-        
-        .plan-features li:last-child {
-            border-bottom: none;
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            padding: 100px 0;
-            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
-            text-align: center;
-            color: white;
-        }
-        
-        .cta-section h2 {
-            font-size: 36px;
-            margin-bottom: 20px;
-        }
-        
-        .cta-section p {
-            font-size: 18px;
-            max-width: 700px;
-            margin: 0 auto 30px;
-            opacity: 0.9;
-        }
-        
-        .cta-section .cta-button {
-            background-color: white;
-            color: #4361ee;
-            font-size: 16px;
-            padding: 15px 40px;
-        }
-        
-        .cta-section .cta-button:hover {
-            background-color: #f0f4ff;
-        }
-        
-        /* Footer */
-        footer {
-            background-color: #222;
-            color: #ccc;
-            padding: 70px 0 20px;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
-            margin-bottom: 50px;
-        }
-        
-        .footer-column h3 {
-            font-size: 20px;
-            color: white;
-            margin-bottom: 25px;
-        }
-        
-        .footer-links {
-            list-style: none;
-        }
-        
-        .footer-links li {
-            margin-bottom: 12px;
-        }
-        
-        .footer-links a {
-            color: #aaa;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-links a:hover {
-            color: #4361ee;
-        }
-        
-        .copyright {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #444;
-            font-size: 14px;
-            color: #888;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .hero-content {
-                flex-direction: column;
-            }
-            
-            .hero-text {
-                padding-right: 0;
-                margin-bottom: 50px;
-                text-align: center;
-            }
-            
-            .hero-text p {
-                margin: 0 auto 30px;
-            }
-            
-            .pricing-card.featured {
-                transform: none;
-            }
-            
-            .pricing-card.featured:hover {
-                transform: translateY(-10px);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-            }
-            
-            .hero-text h1 {
-                font-size: 36px;
-            }
-            
-            .section-title h2 {
-                font-size: 30px;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .hero-buttons button {
-                width: 100%;
-                max-width: 300px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .hero {
-                padding: 130px 0 80px;
-            }
-            
-            .features, .benefits, .testimonials, .pricing, .cta-section {
-                padding: 70px 0;
-            }
-            
-            .feature-card, .testimonial {
-                padding: 25px;
-            }
-            
-            .plan-price {
-                font-size: 36px;
-            }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body>
-    <!-- Header & Navigation -->
-    <header>
-        <div class="container">
-            <nav>
-                <div class="logo">
-                    <div class="logo-icon"><i class="fas fa-bezier-curve"></i></div>
-                    <div class="logo-text">Code<span>Flow</span></div>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- ==================== 1. 顶部导航栏 ==================== -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- 上半部分：Logo、实时时钟、搜索框、操作按钮 -->
+            <div class="flex items-center justify-between h-16 gap-3">
+                <!-- 品牌 Logo 与 实时时钟 -->
+                <div class="flex items-center gap-4 shrink-0">
+                    <a href="#" onclick="resetFilters(event)" class="flex items-center gap-2.5 group">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">脉动资讯</span>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border border-red-500/20">LIVE</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- 实时时钟（桌面端显示） -->
+                    <div class="hidden lg:flex items-center gap-2 pl-4 border-l border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="live-clock">加载时间中...</span>
+                    </div>
                 </div>
-                
-                <ul class="nav-links">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#benefits">Benefits</a></li>
-                    <li><a href="#testimonials">Testimonials</a></li>
-                    <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="#">Resources</a></li>
-                </ul>
-                
-                <button class="cta-button">Start Free Trial</button>
-                <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+
+                <!-- 右侧功能区：搜索框 + 模拟推送按钮 + 深浅色切换 -->
+                <div class="flex items-center gap-2 sm:gap-3 flex-1 justify-end max-w-xl">
+                    <!-- 实时搜索框 -->
+                    <div class="relative flex-1 max-w-xs">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="搜索新闻标题、关键词..." 
+                            class="block w-full pl-9 pr-8 py-1.5 sm:py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/70 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
+                        >
+                        <button 
+                            id="clear-search-btn" 
+                            onclick="clearSearch()" 
+                            class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            title="清空搜索"
+                        >
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- 手动模拟推送按钮 -->
+                    <button 
+                        onclick="triggerManualPush()" 
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium bg-brand-600 hover:bg-brand-700 active:scale-95 text-white shadow-sm shadow-brand-500/20 transition-all shrink-0 cursor-pointer"
+                        title="立即模拟接收一条最新突发快讯"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="hidden sm:inline">模拟接收最新快讯</span>
+                        <span class="sm:hidden">模拟快讯</span>
+                    </button>
+
+                    <!-- 深色/浅色模式切换按钮 -->
+                    <button 
+                        id="theme-toggle" 
+                        onclick="toggleTheme()" 
+                        class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+                        aria-label="切换深色/浅色模式"
+                        title="切换深色/浅色主题"
+                    >
+                        <!-- 太阳图标 (暗黑模式下显示) -->
+                        <svg id="sun-icon" class="hidden w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- 月亮图标 (浅色模式下显示) -->
+                        <svg id="moon-icon" class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 下半部分：分类导航标签栏 -->
+            <nav class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800/80 overflow-x-auto no-scrollbar gap-4">
+                <div id="category-tabs" class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- 分类按钮由 JS 动态渲染 -->
+                </div>
+                <!-- 自动推送状态指示器 -->
+                <div class="hidden md:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                    </span>
+                    <span>自动实时监听中 · 每18秒检测更新</span>
+                </div>
             </nav>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1>Build Apps Faster With <span>Visual Development</span></h1>
-                    <p>CodeFlow empowers teams to create enterprise-grade applications with minimal coding. Drag, drop, and connect components to build powerful web and mobile apps in record time.</p>
-                    <div class="hero-buttons">
-                        <button class="cta-button">Start Building Free</button>
-                        <button class="secondary-button">Watch Demo</button>
-                    </div>
-                </div>
-                <div class="hero-image">
-                    <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="CodeFlow Platform Interface">
+    <!-- ==================== 2. 突发新闻滚动播报条 (Breaking News Ticker) ==================== -->
+    <div class="bg-slate-900 dark:bg-slate-900/95 text-white border-b border-slate-800 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-10">
+            <!-- 左侧固定标签 -->
+            <div class="flex items-center gap-1.5 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shrink-0 mr-3 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                <span>突发快讯</span>
+            </div>
+            <!-- 滚动内容容器 -->
+            <div class="relative flex-1 overflow-hidden h-full flex items-center">
+                <div id="breaking-ticker-track" class="animate-ticker flex items-center gap-8 text-xs sm:text-sm text-slate-200">
+                    <!-- 滚动播报条内容由 JS 动态渲染 -->
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Features Section -->
-    <section class="features" id="features">
-        <div class="container">
-            <div class="section-title">
-                <h2>Powerful Features for Rapid Development</h2>
-                <p>CodeFlow provides all the tools you need to build, deploy, and scale applications without writing extensive code.</p>
-            </div>
+    <!-- ==================== 3. 主体双栏内容区 ==================== -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-th-large"></i>
-                    </div>
-                    <h3>Visual Builder</h3>
-                    <p>Drag and drop UI components to design responsive interfaces. Connect data sources with simple point-and-click actions.</p>
-                </div>
+            <!-- 左侧栏：主新闻信息流 (占 8 列) -->
+            <section class="lg:col-span-8 space-y-5">
                 
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <h3>Database Integration</h3>
-                    <p>Connect to any data source with built-in connectors. Automatically generate CRUD operations without writing SQL.</p>
+                <!-- 实时动态推送提示横幅 (默认隐藏，有未读推送时滑出显示) -->
+                <div id="new-push-banner" class="hidden animate-slide-in">
+                    <button 
+                        onclick="loadPendingNews()" 
+                        class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-medium text-sm shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2.5 transition-all cursor-pointer group"
+                    >
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-400"></span>
+                        </span>
+                        <span id="new-push-text">有 1 条最新实时新闻推送，点击立即加载查看</span>
+                        <svg class="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
                 </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <h3>Cross-Platform</h3>
-                    <p>Build once, deploy everywhere. Generate applications for web, iOS, and Android from a single visual design.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-code"></i>
-                    </div>
-                    <h3>Extensible with Code</h3>
-                    <p>Add custom functionality with JavaScript when needed. Our platform doesn't limit your creativity or complexity.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>Enterprise Security</h3>
-                    <p>Built-in authentication, authorization, and data encryption. SOC2 compliant with enterprise-grade security features.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <h3>One-Click Deployment</h3>
-                    <p>Deploy to cloud or on-premises with a single click. Automatic scaling and monitoring included.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Benefits Section -->
-    <section class="benefits" id="benefits">
-        <div class="container">
-            <div class="section-title">
-                <h2>Why Choose CodeFlow?</h2>
-                <p>Join thousands of companies accelerating their digital transformation with low-code development.</p>
-            </div>
-            
-            <div class="benefits-grid">
-                <div class="benefit-item">
-                    <div class="benefit-icon">
-                        <i class="fas fa-bolt"></i>
+                <!-- 当前筛选状态提示栏 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <h2 id="feed-section-title" class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                            全部头条与深度报道
+                        </h2>
+                        <span id="news-count-badge" class="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            0 篇
+                        </span>
                     </div>
-                    <h3>10x Faster Development</h3>
-                    <p>Build applications in days instead of months with visual development tools.</p>
+                    <span class="text-xs text-slate-400 dark:text-slate-500">点击任意卡片阅读全文</span>
                 </div>
-                
-                <div class="benefit-item">
-                    <div class="benefit-icon">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <h3>Reduce Costs by 70%</h3>
-                    <p>Lower development and maintenance costs with fewer resources required.</p>
-                </div>
-                
-                <div class="benefit-item">
-                    <div class="benefit-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Citizen Developers</h3>
-                    <p>Enable business users to build solutions with minimal IT assistance.</p>
-                </div>
-                
-                <div class="benefit-item">
-                    <div class="benefit-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>Scale Effortlessly</h3>
-                    <p>From prototype to enterprise-scale applications with the same platform.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Testimonials -->
-    <section class="testimonials" id="testimonials">
-        <div class="container">
-            <div class="section-title">
-                <h2>Trusted by Industry Leaders</h2>
-                <p>See what our customers have to say about their experience with CodeFlow.</p>
-            </div>
-            
-            <div class="testimonial-slider">
-                <div class="testimonial">
-                    <div class="testimonial-text">
-                        "CodeFlow transformed how we deliver solutions to our business units. What used to take 6 months now takes 3 weeks. Our development team can focus on complex problems while business teams build their own solutions."
+                <!-- 头条大图卡片容器 -->
+                <div id="hero-news-container"></div>
+
+                <!-- 普通新闻列表卡片容器 -->
+                <div id="news-list-container" class="space-y-4"></div>
+
+                <!-- 无搜索结果空状态提示 -->
+                <div id="empty-state" class="hidden py-16 px-4 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">SC</div>
-                        <div class="author-info">
-                            <h4>Sarah Chen</h4>
-                            <p>CTO, TechGrowth Inc.</p>
+                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">未找到匹配的新闻内容</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">请尝试更换其他关键词，或切换回“全部分类”查看最新资讯。</p>
+                    <button onclick="resetFilters()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors cursor-pointer">
+                        重置筛选条件
+                    </button>
+                </div>
+            </section>
+
+            <!-- 右侧栏：7×24小时实时快讯时间线 + 热门话题排行榜 (占 4 列) -->
+            <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-32">
+                
+                <!-- 模块 A：7×24小时实时快讯时间线 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                            </span>
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white">7×24小时实时快讯</h3>
                         </div>
+                        <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
+                            电报直播
+                        </span>
+                    </div>
+
+                    <!-- 时间线列表容器 -->
+                    <div id="timeline-container" class="p-5 max-h-[430px] overflow-y-auto space-y-5">
+                        <!-- 时间线节点由 JS 动态渲染 -->
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Pricing Section -->
-    <section class="pricing" id="pricing">
-        <div class="container">
-            <div class="section-title">
-                <h2>Simple, Transparent Pricing</h2>
-                <p>Choose the plan that fits your needs. All plans include core features with no hidden fees.</p>
-            </div>
-            
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3 class="plan-name">Starter</h3>
-                    <div class="plan-price">$29<span>/month</span></div>
-                    <ul class="plan-features">
-                        <li>Up to 5 users</li>
-                        <li>10 GB storage</li>
-                        <li>Basic components</li>
-                        <li>Community support</li>
-                        <li>1 production app</li>
-                    </ul>
-                    <button class="secondary-button">Get Started</button>
-                </div>
-                
-                <div class="pricing-card featured">
-                    <div class="featured-badge">Most Popular</div>
-                    <h3 class="plan-name">Professional</h3>
-                    <div class="plan-price">$89<span>/month</span></div>
-                    <ul class="plan-features">
-                        <li>Up to 25 users</li>
-                        <li>100 GB storage</li>
-                        <li>All components</li>
-                        <li>Priority support</li>
-                        <li>10 production apps</li>
-                        <li>Custom branding</li>
-                    </ul>
-                    <button class="cta-button">Try Free for 14 Days</button>
-                </div>
-                
-                <div class="pricing-card">
-                    <h3 class="plan-name">Enterprise</h3>
-                    <div class="plan-price">Custom</div>
-                    <ul class="plan-features">
-                        <li>Unlimited users</li>
-                        <li>Unlimited storage</li>
-                        <li>All features included</li>
-                        <li>24/7 dedicated support</li>
-                        <li>Unlimited apps</li>
-                        <li>On-premises option</li>
-                    </ul>
-                    <button class="secondary-button">Contact Sales</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <h2>Start Building Today</h2>
-            <p>Join over 10,000 companies that use CodeFlow to accelerate their application development. No credit card required for the free trial.</p>
-            <button class="cta-button">Get Started for Free</button>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-column">
-                    <div class="logo">
-                        <div class="logo-icon"><i class="fas fa-bezier-curve"></i></div>
-                        <div class="logo-text">Code<span>Flow</span></div>
+                <!-- 模块 B：热门话题排行榜 -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd" />
+                            </svg>
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white">全网热搜话题榜</h3>
+                        </div>
+                        <span class="text-xs text-slate-400">实时热度</span>
                     </div>
-                    <p style="margin-top: 20px; color: #aaa;">The leading visual development platform for building enterprise applications with minimal coding.</p>
+
+                    <div id="trending-topics-container" class="p-4 divide-y divide-slate-100 dark:divide-slate-800/80">
+                        <!-- 热门话题由 JS 动态渲染 -->
+                    </div>
                 </div>
-                
-                <div class="footer-column">
-                    <h3>Product</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Features</a></li>
-                        <li><a href="#">Pricing</a></li>
-                        <li><a href="#">Use Cases</a></li>
-                        <li><a href="#">Integrations</a></li>
-                        <li><a href="#">Roadmap</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-column">
-                    <h3>Resources</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Documentation</a></li>
-                        <li><a href="#">Tutorials</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Community</a></li>
-                        <li><a href="#">Support</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-column">
-                    <h3>Company</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
+
+            </aside>
+        </div>
+    </main>
+
+    <!-- ==================== 4. 页脚 ==================== -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-700 dark:text-slate-200">脉动资讯 PulseNews</span>
+                <span>·</span>
+                <span>7×24小时全球实时新闻聚合平台</span>
             </div>
-            
-            <div class="copyright">
-                <p>&copy; 2023 CodeFlow. All rights reserved.</p>
+            <div>
+                <span>© 2026 PulseNews 实时资讯中心 · 仅供前端交互与实时新闻展示演示</span>
             </div>
         </div>
     </footer>
 
-    <script>
-        // Mobile menu toggle
-        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-            
-            // Adjust for mobile
-            if (window.innerWidth <= 768) {
-                if (navLinks.style.display === 'flex') {
-                    navLinks.style.flexDirection = 'column';
-                    navLinks.style.position = 'absolute';
-                    navLinks.style.top = '80px';
-                    navLinks.style.left = '0';
-                    navLinks.style.width = '100%';
-                    navLinks.style.backgroundColor = 'white';
-                    navLinks.style.padding = '20px';
-                    navLinks.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-                    
-                    const navItems = document.querySelectorAll('.nav-links li');
-                    navItems.forEach(item => {
-                        item.style.margin = '10px 0';
-                    });
-                }
-            }
-        });
-        
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
+    <!-- ==================== 5. 新闻正文详情模态框 (Modal) ==================== -->
+    <div id="news-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 半透明背景遮罩 -->
+        <div onclick="closeModal()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+
+        <!-- 模态框内容卡片 -->
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+            <div class="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all animate-slide-in">
                 
-                const targetId = this.getAttribute('href');
-                if(targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if(targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                    
-                    // Close mobile menu if open
-                    if(window.innerWidth <= 768) {
-                        document.querySelector('.nav-links').style.display = 'none';
-                    }
-                }
-            });
-        });
-        
-        // Simple testimonial slider
-        const testimonials = [
-            {
-                text: "CodeFlow transformed how we deliver solutions to our business units. What used to take 6 months now takes 3 weeks. Our development team can focus on complex problems while business teams build their own solutions.",
-                name: "Sarah Chen",
-                position: "CTO, TechGrowth Inc.",
-                initials: "SC"
-            },
-            {
-                text: "We reduced our app development time by 80% using CodeFlow. The visual interface made it easy for our analysts to build data dashboards without waiting for IT resources.",
-                name: "Marcus Johnson",
-                position: "Director of Operations, DataCorp",
-                initials: "MJ"
-            },
-            {
-                text: "As a non-technical founder, CodeFlow allowed me to build our MVP in just 2 months. I could test ideas quickly and iterate based on user feedback without deep coding knowledge.",
-                name: "Lisa Wang",
-                position: "Founder, StartupLabs",
-                initials: "LW"
-            }
-        ];
-        
-        let currentTestimonial = 0;
-        const testimonialElement = document.querySelector('.testimonial');
-        
-        function rotateTestimonial() {
-            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
-            updateTestimonial();
-        }
-        
-        function updateTestimonial() {
-            const testimonial = testimonials[currentTestimonial];
-            testimonialElement.innerHTML = `
-                <div class="testimonial-text">"${testimonial.text}"</div>
-                <div class="testimonial-author">
-                    <div class="author-avatar">${testimonial.initials}</div>
-                    <div class="author-info">
-                        <h4>${testimonial.name}</h4>
-                        <p>${testimonial.position}</p>
+                <!-- 顶部关闭操作栏 -->
+                <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <span id="modal-category" class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400">
+                            科技
+                        </span>
+                        <span id="modal-source" class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                            来源：脉动通讯社
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="copyArticleLink()" 
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                            title="复制新闻摘要与链接"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            </svg>
+                            <span id="copy-btn-text">分享摘要</span>
+                        </button>
+                        <button 
+                            onclick="closeModal()" 
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            aria-label="关闭窗口"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
-            `;
+
+                <!-- 模态框滚动正文区 -->
+                <div class="p-6 sm:p-8 max-h-[80vh] overflow-y-auto space-y-6">
+                    <!-- 标题与发布信息 -->
+                    <div class="space-y-3">
+                        <h1 id="modal-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-snug">
+                            新闻标题占位
+                        </h1>
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                            <span id="modal-time" class="flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                刚刚
+                            </span>
+                            <span id="modal-views" class="flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                12.4万 阅读
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 配图 -->
+                    <div id="modal-image-wrapper" class="rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 aspect-video">
+                        <img id="modal-image" src="" alt="新闻配图" class="w-full h-full object-cover">
+                    </div>
+
+                    <!-- 导语摘要框 -->
+                    <div id="modal-summary" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/70 border-l-4 border-brand-500 text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                    </div>
+
+                    <!-- 正文段落 -->
+                    <div id="modal-content" class="space-y-4 text-base text-slate-800 dark:text-slate-200 leading-8">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右下角 Toast 轻提示 (替代原生 alert) -->
+    <div id="toast-notification" class="fixed bottom-6 right-6 z-50 hidden transform transition-all duration-300">
+        <div class="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-sm font-medium shadow-xl border border-slate-700">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="toast-message">操作成功</span>
+        </div>
+    </div>
+
+    <!-- ==================== 6. 核心交互与数据脚本 ==================== -->
+    <script>
+        // -------------------- 1. 初始化状态与模拟数据集 --------------------
+        const CATEGORIES = ['全部', '科技', '财经', '国际', '体育', '娱乐'];
+        let currentCategory = '全部';
+        let searchQuery = '';
+        let currentModalArticle = null;
+
+        // 分类标签配色映射
+        const CATEGORY_BADGE_STYLES = {
+            '科技': 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/60',
+            '财经': 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60',
+            '国际': 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 border-purple-200/60 dark:border-purple-800/60',
+            '体育': 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60',
+            '娱乐': 'bg-pink-50 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400 border-pink-200/60 dark:border-pink-800/60',
+        };
+
+        // 初始新闻列表数据
+        let newsArticles = [
+            {
+                id: 101,
+                title: '下一代光子计算芯片实现商用级突破，算力能耗比提升百倍引发全球算力格局重构',
+                summary: '国内联合科研团队今日正式发布全集成硅基光电子计算芯片“玄光-II”，在超大规模AI推理任务中展现出惊人的低延迟与高能效表现。',
+                category: '科技',
+                source: '前沿科技观察',
+                timeText: '12分钟前',
+                views: '48.6万',
+                isHero: true,
+                isBreaking: true,
+                image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+                paragraphs: [
+                    '今日上午，由多家顶尖高校与半导体实验室联合组建的研发团队正式对外公布了新一代光子计算芯片“玄光-II”的实测数据。该芯片采用创新的三维光电混合封装架构，首次在单片晶圆上实现了超过十万个可编程光学谐振单元的高密度集成。',
+                    '据现场技术负责人介绍，传统电子芯片在面对万亿参数级别的大模型实时推理时，受限于铜互连发热与“内存墙”瓶颈，功耗呈指数级攀升。而“玄光-II”利用光子在波导中传播几乎不产生焦耳热的特性，将单次矩阵乘法运算的能耗降低至传统旗舰级GPU的百分之一。',
+                    '目前，包括多家头部云计算厂商与自动驾驶企业在内的首批合作伙伴已启动样品测试，预计明年上半年将在智算中心开展规模化部署。'
+                ]
+            },
+            {
+                id: 102,
+                title: '亚洲主要股指全线走强，新能源与高端装备制造板块领涨市场成交额突破两万亿',
+                summary: '受多项稳增长政策落地及全球供应链景气度回升提振，今日早盘亚太市场交投活跃，北向资金净流入创近三个月新高。',
+                category: '财经',
+                source: '环球财经连线',
+                timeText: '28分钟前',
+                views: '31.2万',
+                isHero: false,
+                isBreaking: true,
+                image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '今日早盘，亚洲主要金融市场迎来强劲反弹。A股与港股双双高开高走，固态电池、工业机器人、特高压电网等高端制造板块涨幅居前，市场情绪显著回暖。',
+                    '多家外资投行在最新发布的研报中指出，随着制造业PMI连续回升以及企业盈利周期触底改善，亚太新兴市场资产的估值吸引力正在快速显现。',
+                    '分析师提醒，短期内市场交投放大有助于消化前期套牢盘，但投资者仍需关注板块轮动节奏，聚焦具备核心技术壁垒与稳定现金流的龙头企业。'
+                ]
+            },
+            {
+                id: 103,
+                title: '全球深海碳封存与蓝碳生态合作峰会在日内瓦开幕，40余国签署海洋碳汇联合声明',
+                summary: '各国代表围绕深海地质碳封存技术标准、跨境海洋保护区建设及绿色航运走廊达成多项里程碑式共识。',
+                category: '国际',
+                source: '国际新闻网',
+                timeText: '45分钟前',
+                views: '19.8万',
+                isHero: false,
+                isBreaking: false,
+                image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '当地时间周日上午，为期三天的全球深海碳封存与蓝碳生态合作峰会在瑞士日内瓦拉开帷幕。来自全球40多个沿海及岛屿国家的环境部长、海洋科学家与国际组织代表出席了开幕式。',
+                    '会议期间，与会各方正式签署了《2026全球海洋碳汇监测与合作联合声明》，承诺建立统一的红树林、海草床及深海沉积物碳汇核算数据库，并设立总额50亿美元的“蓝色星球过渡基金”。',
+                    '联合国海洋事务特使在致辞中强调，海洋吸收了全球超过四分之一的二氧化碳排放，加强跨国海洋生态保护已成为应对气候变化不可或缺的核心支柱。'
+                ]
+            },
+            {
+                id: 104,
+                title: '世界田径钻石联赛总决赛落幕：中国短跑接力队破亚洲纪录夺金，全场沸腾',
+                summary: '在昨晚进行的男子4×100米接力决赛中，中国队凭借完美的交接棒配合跑出37秒48的惊人成绩，力压多支欧美劲旅强势登顶。',
+                category: '体育',
+                source: '体坛周报快讯',
+                timeText: '1小时前',
+                views: '64.5万',
+                isHero: false,
+                isBreaking: true,
+                image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '昨晚进行的2026世界田径钻石联赛总决赛收官之战上演巅峰对决。在压轴进行的男子4×100米接力决赛中，被分在第六道的中国队发挥近乎完美。',
+                    '第一棒起跑反应时低至0.128秒，二、三棒弯道衔接流畅如行云流水，第四棒选手在最后30米实现反超，最终以37秒48率先撞线，一举打破尘封多年的亚洲纪录！',
+                    '赛后新闻发布会上，教练组表示这一成绩源于过去一年针对高频步频与盲区交接棒的科学化数据训练，队伍接下来将全力备战明年的世锦赛。'
+                ]
+            },
+            {
+                id: 105,
+                title: '国产硬核科幻巨制《星海归途》全球同步定档，IMAX特制版首支预告片播放量破亿',
+                summary: '历时四年打磨，全片采用虚拟制片与实景搭建相结合，展现人类在近地轨道太空电梯建设中的史诗篇章。',
+                category: '娱乐',
+                source: '光影娱乐志',
+                timeText: '2小时前',
+                views: '52.1万',
+                isHero: false,
+                isBreaking: false,
+                image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '今日，备受影迷期待的国产硬核科幻电影《星海归途》正式宣布定档，并同步释出时长3分钟的IMAX全画幅首支预告片。预告片上线仅6小时，全网累计播放量便突破1亿大关。',
+                    '据导演透露，为了追求极致的工业质感，剧组聘请了多位航天动力学专家担任科学顾问，并搭建了超过3万平方米的实景空间站舱段，结合LED虚拟拍摄技术实现真实光影反射。',
+                    '海外发行方同时确认，该片将在北美、欧洲及东南亚超过40个国家和地区同步上映。'
+                ]
+            },
+            {
+                id: 106,
+                title: '全球首条兆瓦级重卡超充干线正式全线贯通，充电15分钟即可续航500公里',
+                summary: '全长1800公里的绿色物流大通道投入运营，配备全液冷超充桩与智能微电网储能系统，大幅降低干线货运碳排放。',
+                category: '科技',
+                source: '新出行周刊',
+                timeText: '3小时前',
+                views: '27.9万',
+                isHero: false,
+                isBreaking: false,
+                image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '随着最后一座兆瓦级全液冷超充站在沿线服务区完成并网调试，全长1800公里的跨省电动重卡超充干线今日正式宣布全线贯通。',
+                    '该干线平均每120公里设有一座超充枢纽，单枪最大输出功率可达1.2兆瓦，支持双枪同充技术，搭载新一代高倍率动力电池的49吨级电动半挂车仅需15分钟即可补能至80%。',
+                    '物流企业测算显示，相比传统燃油重卡，使用超充干线运输每公里能源成本下降近45%，单车每年可减少碳排放约85吨。'
+                ]
+            }
+        ];
+
+        // 实时快讯推送池（用于自动推送 & 手动点击“模拟接收最新快讯”）
+        const LIVE_PUSH_POOL = [
+            {
+                title: '央行宣布下调金融机构存款准备金率0.25个百分点，释放长期流动性约5000亿元',
+                summary: '为保持银行体系流动性合理充裕，进一步降低实体经济综合融资成本，央行今日发布最新货币政策调整公告。',
+                category: '财经',
+                source: '财经快讯电报',
+                image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '中国人民银行刚刚发布公告，决定于下周一起下调金融机构存款准备金率0.25个百分点（不含已执行5%存款准备金率的金融机构）。本次下调后，金融机构加权平均存款准备金率约为6.6%。',
+                    '权威金融专家解读称，此次降准时机精准，将有效增强银行信贷投放能力，精准支持科技创新、绿色转型以及小微企业发展。'
+                ]
+            },
+            {
+                title: '开源大模型社区发布全新多模态原生推理引擎，端侧手机可流畅运行百亿参数模型',
+                summary: '通过全新的动态稀疏量化与内存零拷贝技术，移动设备本地离线AI助手响应速度提升3.5倍。',
+                category: '科技',
+                source: '极客前沿社',
+                image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '知名开源AI社区刚刚正式开源了新一代端侧推理引擎 NanoCore 3.0。该引擎针对移动端NPU进行了底层指令集重构，支持文本、语音与实时视频流的毫秒级本地多模态交互。',
+                    '实测显示，在主流旗舰智能手机上运行百亿参数模型时，首字生成延迟低至180毫秒，且全程无需联网，彻底保障用户个人隐私数据安全。'
+                ]
+            },
+            {
+                title: '欧冠淘汰赛抽签结果刚刚揭晓：多场豪门强强对话上演，死亡半区引人瞩目',
+                summary: '卫冕冠军将迎战英超劲旅，两大新生代超级射手将在四分之一决赛展开正面交锋。',
+                category: '体育',
+                source: '欧洲足球在线',
+                image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '欧足联总部刚刚完成了本赛季欧冠联赛四分之一决赛及半决赛对阵抽签仪式。抽签结果极具戏剧性，四支夺冠热门球队齐聚上半区，提前上演火星撞地球般的巅峰对决。',
+                    '首回合比赛将于下月中旬正式打响，全球各大体育转播机构已全面开启赛事预热。'
+                ]
+            },
+            {
+                title: '国际空间站与商业月球轨道站成功完成首次跨轨道激光高速通信测试',
+                summary: '传输速率达到创纪录的100Gbps，为未来深空探测与地月实时高清视频传输奠定坚实基础。',
+                category: '国际',
+                source: '航天快讯社',
+                image: 'https://images.unsplash.com/photo-1454789548928-9efd52dc4031?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '多国航天机构联合通报，近地轨道空间站与地月转移轨道中继卫星之间刚刚成功完成了首次深空激光通信链路测试，稳定传输速率突破100Gbps。',
+                    '相比传统的射频通信方式，激光通信不仅带宽提升了上百倍，而且终端设备重量减轻了一半，将成为未来月球科研站通信网络的核心标配。'
+                ]
+            },
+            {
+                title: '第39届国际音乐节公布全阵容名单，多位殿堂级交响乐团与先锋电子音乐人跨界同台',
+                summary: '本届音乐节首次引入全息声场户外舞台技术，早鸟票开售3分钟即告罄。',
+                category: '娱乐',
+                source: '文艺风向标',
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
+                paragraphs: [
+                    '备受瞩目的第39届国际音乐节组委会今日正式公布了全部演出阵容与日程安排。除保留经典的古典交响之夜外，今年特别增设了“AI与交响跨界实验单元”。',
+                    '主办方表示，主舞台将采用最新一代360度沉浸式空间音频阵列，确保现场数万名观众在任何角落都能获得如临音乐厅黄金席位的听觉体验。'
+                ]
+            }
+        ];
+
+        // 待加载的实时推送队列（点击横幅后合入主信息流）
+        let pendingArticles = [];
+        let pushPoolIndex = 0;
+
+        // 7×24小时右侧时间线初始数据
+        let timelineItems = [
+            { time: '刚刚', category: '财经', text: '离岸人民币兑美元短线拉升逾200点，创近两周盘中新高。', isHighlight: true },
+            { time: '6分钟前', category: '科技', text: '工信部发布最新工业互联网创新发展行动计划，加快5G-A工厂规模化落地。', isHighlight: false },
+            { time: '19分钟前', category: '国际', text: '欧洲央行多位管委发表讲话，暗示下月议息会议将重点评估服务业通胀韧性。', isHighlight: false },
+            { time: '34分钟前', category: '体育', text: 'WTT大满贯赛混双半决赛结束，国乒组合3-0横扫对手顺利晋级决赛。', isHighlight: false },
+            { time: '51分钟前', category: '财经', text: '国际现货黄金价格盘中突破关键阻力位，多家品牌金店足金饰品报价同步上调。', isHighlight: false },
+            { time: '1小时前', category: '科技', text: '国内首条全自动无人驾驶跨海轮渡航线开启试运行，单程航行时间缩短20%。', isHighlight: false },
+            { time: '2小时前', category: '娱乐', text: '周末全国电影单日票房突破3.2亿元，科幻与悬疑题材影片贡献超七成票房。', isHighlight: false }
+        ];
+
+        // 热门话题排行榜数据
+        const TRENDING_TOPICS = [
+            { rank: 1, title: '光子芯片玄光II算力突破', heat: '498.2万', tag: '爆', tagColor: 'bg-red-500 text-white' },
+            { rank: 2, title: '中国接力队破亚洲纪录夺金', heat: '412.6万', tag: '热', tagColor: 'bg-orange-500 text-white' },
+            { rank: 3, title: '亚洲股市全线走强成交破两万亿', heat: '356.0万', tag: '新', tagColor: 'bg-brand-500 text-white' },
+            { rank: 4, title: '兆瓦级电动重卡超充干线贯通', heat: '289.4万', tag: '', tagColor: '' },
+            { rank: 5, title: '《星海归途》IMAX首支预告', heat: '241.8万', tag: '热', tagColor: 'bg-orange-500 text-white' },
+            { rank: 6, title: '40余国签署海洋碳汇联合声明', heat: '195.3万', tag: '', tagColor: '' },
+            { rank: 7, title: '端侧手机流畅运行百亿大模型', heat: '168.7万', tag: '新', tagColor: 'bg-brand-500 text-white' }
+        ];
+
+        // -------------------- 2. 实时时钟更新 --------------------
+        function updateLiveClock() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            const formatted = now.toLocaleString('zh-CN', options).replace(/\//g, '-');
+            document.getElementById('live-clock').textContent = formatted;
         }
-        
-        // Auto-rotate testimonials every 5 seconds
-        setInterval(rotateTestimonial, 5000);
-        
-        // CTA button interactions
-        document.querySelectorAll('.cta-button').forEach(button => {
-            button.addEventListener('click', function() {
-                alert('Thank you for your interest in CodeFlow! You would be redirected to the signup page in a real implementation.');
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        // -------------------- 3. 深色 / 浅色模式切换 --------------------
+        function initTheme() {
+            const savedTheme = localStorage.getItem('pulsenews-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+                updateThemeIcons(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateThemeIcons(false);
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('pulsenews-theme', isDark ? 'dark' : 'light');
+            updateThemeIcons(isDark);
+            showToast(isDark ? '已切换至深色护眼模式' : '已切换至浅色明亮模式');
+        }
+
+        function updateThemeIcons(isDark) {
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            if (isDark) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+        // -------------------- 4. 渲染分类导航栏 --------------------
+        function renderCategoryTabs() {
+            const container = document.getElementById('category-tabs');
+            container.innerHTML = CATEGORIES.map(cat => {
+                const isActive = cat === currentCategory;
+                const activeClasses = isActive
+                    ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/25 font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium';
+                return `
+                    <button 
+                        onclick="selectCategory('${cat}')" 
+                        class="px-3.5 py-1.5 rounded-xl text-sm transition-all whitespace-nowrap cursor-pointer ${activeClasses}"
+                    >
+                        ${cat}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategory(cat) {
+            currentCategory = cat;
+            renderCategoryTabs();
+            renderNewsFeed();
+        }
+
+        // -------------------- 5. 渲染突发新闻滚动播报条 --------------------
+        function renderBreakingTicker() {
+            const track = document.getElementById('breaking-ticker-track');
+            const breakingItems = newsArticles.filter(item => item.isBreaking);
+            // 复制一份实现无缝首尾衔接循环滚动
+            const loopItems = [...breakingItems, ...breakingItems];
+            track.innerHTML = loopItems.map(item => `
+                <button 
+                    onclick="openArticleModal(${item.id})" 
+                    class="inline-flex items-center gap-2 hover:text-amber-300 transition-colors cursor-pointer text-left"
+                >
+                    <span class="px-1.5 py-0.5 text-[10px] rounded bg-white/10 text-slate-300 font-medium">${item.category}</span>
+                    <span class="truncate max-w-md sm:max-w-xl">${item.title}</span>
+                    <span class="text-slate-600 mx-2">•</span>
+                </button>
+            `).join('');
+        }
+
+        // -------------------- 6. 渲染左侧主新闻信息流 --------------------
+        function renderNewsFeed() {
+            const heroContainer = document.getElementById('hero-news-container');
+            const listContainer = document.getElementById('news-list-container');
+            const emptyState = document.getElementById('empty-state');
+            const titleEl = document.getElementById('feed-section-title');
+            const countBadge = document.getElementById('news-count-badge');
+
+            // 过滤数据
+            const filtered = newsArticles.filter(article => {
+                const matchCat = currentCategory === '全部' || article.category === currentCategory;
+                const q = searchQuery.trim().toLowerCase();
+                const matchSearch = !q || 
+                    article.title.toLowerCase().includes(q) || 
+                    article.summary.toLowerCase().includes(q) ||
+                    article.category.toLowerCase().includes(q);
+                return matchCat && matchSearch;
             });
+
+            // 更新标题与数量徽章
+            if (searchQuery.trim()) {
+                titleEl.textContent = `“${searchQuery.trim()}” 的搜索结果`;
+            } else {
+                titleEl.textContent = currentCategory === '全部' ? '全部头条与深度报道' : `${currentCategory}频道 · 最新精选`;
+            }
+            countBadge.textContent = `${filtered.length} 篇`;
+
+            // 处理空状态
+            if (filtered.length === 0) {
+                heroContainer.innerHTML = '';
+                listContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            // 第一条作为头条大图卡片展示（当处于默认浏览或包含头条时）
+            const heroArticle = filtered[0];
+            const restArticles = filtered.slice(1);
+
+            const heroBadgeClass = CATEGORY_BADGE_STYLES[heroArticle.category] || '';
+            heroContainer.innerHTML = `
+                <article 
+                    onclick="openArticleModal(${heroArticle.id})" 
+                    class="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl hover:border-brand-500/40 transition-all duration-300 cursor-pointer animate-slide-in"
+                >
+                    <div class="relative aspect-[16/9] sm:aspect-[21/10] overflow-hidden bg-slate-200 dark:bg-slate-800">
+                        <img 
+                            src="${heroArticle.image}" 
+                            alt="${heroArticle.title}" 
+                            onerror="this.src='https://placehold.co/1200x600/1e293b/94a3b8?text=PulseNews+Headline'"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        >
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent"></div>
+                        
+                        <!-- 左上角标签 -->
+                        <div class="absolute top-4 left-4 flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-red-600 text-white shadow">头条聚焦</span>
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-black/50 backdrop-blur-md text-white border border-white/15">
+                                ${heroArticle.category}
+                            </span>
+                            ${heroArticle.isNew ? '<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500 text-white animate-pulse">NEW</span>' : ''}
+                        </div>
+
+                        <!-- 底部文字信息 -->
+                        <div class="absolute bottom-0 inset-x-0 p-5 sm:p-7 text-white space-y-2.5">
+                            <h3 class="text-xl sm:text-2xl lg:text-[26px] font-extrabold leading-snug group-hover:text-brand-300 transition-colors line-clamp-2">
+                                ${highlightKeyword(heroArticle.title, searchQuery)}
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-200/90 line-clamp-2 max-w-3xl">
+                                ${highlightKeyword(heroArticle.summary, searchQuery)}
+                            </p>
+                            <div class="flex items-center gap-3 pt-1 text-xs text-slate-300">
+                                <span class="font-medium text-white">${heroArticle.source}</span>
+                                <span>·</span>
+                                <span>${heroArticle.timeText}</span>
+                                <span>·</span>
+                                <span>${heroArticle.views}阅读</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+
+            // 渲染其余普通新闻列表卡片
+            listContainer.innerHTML = restArticles.map(article => {
+                const badgeClass = CATEGORY_BADGE_STYLES[article.category] || '';
+                return `
+                    <article 
+                        onclick="openArticleModal(${article.id})" 
+                        class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 shadow-sm hover:shadow-md hover:border-brand-500/40 transition-all duration-200 cursor-pointer animate-slide-in"
+                    >
+                        <!-- 左侧缩略图 -->
+                        <div class="sm:w-48 md:w-56 aspect-video sm:aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 relative">
+                            <img 
+                                src="${article.image}" 
+                                alt="${article.title}" 
+                                onerror="this.src='https://placehold.co/600x400/1e293b/94a3b8?text=PulseNews'"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            >
+                            ${article.isNew ? '<span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white shadow">刚刚推送</span>' : ''}
+                        </div>
+
+                        <!-- 右侧文本内容 -->
+                        <div class="flex-1 flex flex-col justify-between min-w-0">
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-semibold border ${badgeClass}">
+                                        ${article.category}
+                                    </span>
+                                    <span class="text-xs text-slate-400 dark:text-slate-500">${article.timeText}</span>
+                                </div>
+                                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-2">
+                                    ${highlightKeyword(article.title, searchQuery)}
+                                </h3>
+                                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                    ${highlightKeyword(article.summary, searchQuery)}
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-400 dark:text-slate-500">
+                                <span>${article.source}</span>
+                                <span class="flex items-center gap-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                                    <span>${article.views}阅读</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // 搜索关键词高亮辅助函数
+        function highlightKeyword(text, query) {
+            if (!query || !query.trim()) return text;
+            const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escaped})`, 'gi');
+            return text.replace(regex, '<mark class="bg-amber-200 dark:bg-amber-500/30 text-slate-900 dark:text-amber-200 px-0.5 rounded">$1</mark>');
+        }
+
+        // -------------------- 7. 渲染右侧 7×24小时实时快讯时间线 & 热门话题 --------------------
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = timelineItems.map((item, idx) => `
+                <div class="relative pl-5 border-l-2 ${idx === 0 ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} space-y-1 animate-slide-in">
+                    <!-- 时间轴圆点 -->
+                    <span class="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full ${idx === 0 ? 'bg-red-500 ring-4 ring-red-500/20' : 'bg-slate-400 dark:bg-slate-500'}"></span>
+                    
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono font-semibold ${idx === 0 ? 'text-red-600 dark:text-red-400' : 'text-brand-600 dark:text-brand-400'}">
+                            ${item.time}
+                        </span>
+                        <span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                            ${item.category}
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm leading-relaxed ${item.isHighlight ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}">
+                        ${item.text}
+                    </p>
+                </div>
+            `).join('');
+        }
+
+        function renderTrendingTopics() {
+            const container = document.getElementById('trending-topics-container');
+            container.innerHTML = TRENDING_TOPICS.map(topic => {
+                let rankStyle = 'text-slate-400 dark:text-slate-500 font-semibold';
+                if (topic.rank === 1) rankStyle = 'text-red-600 font-black text-base';
+                else if (topic.rank === 2) rankStyle = 'text-orange-500 font-black text-base';
+                else if (topic.rank === 3) rankStyle = 'text-amber-500 font-black text-base';
+
+                return `
+                    <button 
+                        onclick="searchTopic('${topic.title.slice(0, 4)}')" 
+                        class="w-full py-2.5 px-1.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-lg transition-colors text-left cursor-pointer group"
+                    >
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-5 text-center shrink-0 ${rankStyle}">${topic.rank}</span>
+                            <span class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                                ${topic.title}
+                            </span>
+                            ${topic.tag ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold shrink-0 ${topic.tagColor}">${topic.tag}</span>` : ''}
+                        </div>
+                        <span class="text-[11px] font-mono text-slate-400 shrink-0">${topic.heat}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // -------------------- 8. 实时动态推送核心机制（自动 + 手动） --------------------
+        function getNextSimulatedArticle() {
+            const template = LIVE_PUSH_POOL[pushPoolIndex % LIVE_PUSH_POOL.length];
+            pushPoolIndex++;
+            const nowStr = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            return {
+                ...template,
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                timeText: `刚刚 (${nowStr})`,
+                views: `${(Math.random() * 8 + 1.2).toFixed(1)}万`,
+                isHero: false,
+                isBreaking: true,
+                isNew: true
+            };
+        }
+
+        // 自动定时推送：先放入待加载队列，并展示顶部红点提示横幅
+        function autoPushNews() {
+            const newArticle = getNextSimulatedArticle();
+            pendingArticles.unshift(newArticle);
+
+            // 同步更新右侧 7×24小时实时快讯时间线
+            const nowTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            timelineItems.unshift({
+                time: nowTime,
+                category: newArticle.category,
+                text: `【突发快讯】${newArticle.title}`,
+                isHighlight: true
+            });
+            renderTimeline();
+
+            // 显示“有 N 条新消息，点击刷新/加载”提示横幅
+            const banner = document.getElementById('new-push-banner');
+            const bannerText = document.getElementById('new-push-text');
+            bannerText.textContent = `有 ${pendingArticles.length} 条最新实时快讯推送，点击立即加载查看`;
+            banner.classList.remove('hidden');
+        }
+
+        // 用户点击提示横幅，将待加载新闻合并到主信息流顶部
+        function loadPendingNews() {
+            if (pendingArticles.length === 0) return;
+            const count = pendingArticles.length;
+            newsArticles = [...pendingArticles, ...newsArticles];
+            pendingArticles = [];
+
+            document.getElementById('new-push-banner').classList.add('hidden');
+            renderBreakingTicker();
+            renderNewsFeed();
+            showToast(`已成功加载 ${count} 条最新实时新闻`);
+        }
+
+        // 用户手动点击“模拟接收最新快讯”按钮：立即生成并插入主信息流与时间线
+        function triggerManualPush() {
+            const newArticle = getNextSimulatedArticle();
+            // 如果之前还有未加载的队列，一并合并进来
+            newsArticles = [newArticle, ...pendingArticles, ...newsArticles];
+            pendingArticles = [];
+            document.getElementById('new-push-banner').classList.add('hidden');
+
+            // 同步插入右侧时间线顶部
+            const nowTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            timelineItems.unshift({
+                time: nowTime,
+                category: newArticle.category,
+                text: `【实时直击】${newArticle.title}`,
+                isHighlight: true
+            });
+
+            renderBreakingTicker();
+            renderNewsFeed();
+            renderTimeline();
+            showToast(`已接收最新${newArticle.category}快讯！`);
+        }
+
+        // 每 18 秒自动触发一次后台新快讯推送提示
+        setInterval(autoPushNews, 18000);
+
+        // -------------------- 9. 搜索与筛选交互 --------------------
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            if (searchQuery.trim().length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+            renderNewsFeed();
         });
-        
-        // Pricing card interactions
-        document.querySelectorAll('.pricing-card button').forEach(button => {
-            button.addEventListener('click', function() {
-                const planName = this.closest('.pricing-card').querySelector('.plan-name').textContent;
-                alert(`You selected the ${planName} plan. In a real implementation, you would be redirected to the checkout process.`);
-            });
+
+        function clearSearch() {
+            searchQuery = '';
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            renderNewsFeed();
+        }
+
+        function searchTopic(keyword) {
+            currentCategory = '全部';
+            searchQuery = keyword;
+            searchInput.value = keyword;
+            clearSearchBtn.classList.remove('hidden');
+            renderCategoryTabs();
+            renderNewsFeed();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetFilters(e) {
+            if (e) e.preventDefault();
+            currentCategory = '全部';
+            clearSearch();
+            renderCategoryTabs();
+            renderNewsFeed();
+        }
+
+        // -------------------- 10. 新闻正文模态框控制 --------------------
+        function openArticleModal(articleId) {
+            const article = newsArticles.find(a => a.id === articleId);
+            if (!article) return;
+
+            currentModalArticle = article;
+            document.getElementById('modal-category').textContent = article.category;
+            document.getElementById('modal-source').textContent = `来源：${article.source}`;
+            document.getElementById('modal-title').textContent = article.title;
+            document.getElementById('modal-time').textContent = `发布时间：${article.timeText}`;
+            document.getElementById('modal-views').textContent = `${article.views} 次阅读`;
+            document.getElementById('modal-summary').textContent = `【核心摘要】${article.summary}`;
+
+            const imgEl = document.getElementById('modal-image');
+            imgEl.src = article.image;
+            imgEl.onerror = function() {
+                this.src = 'https://placehold.co/1200x600/1e293b/94a3b8?text=PulseNews+Detail';
+            };
+
+            const contentContainer = document.getElementById('modal-content');
+            contentContainer.innerHTML = article.paragraphs.map(p => `<p>${p}</p>`).join('');
+
+            document.getElementById('copy-btn-text').textContent = '分享摘要';
+            document.getElementById('news-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('news-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+            currentModalArticle = null;
+        }
+
+        // 按下 ESC 键关闭模态框
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('news-modal').classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // 复制新闻摘要到剪贴板（兼容 iFrame 环境）
+        function copyArticleLink() {
+            if (!currentModalArticle) return;
+            const shareText = `【脉动资讯 · ${currentModalArticle.category}】${currentModalArticle.title}\n摘要：${currentModalArticle.summary}`;
+            const textarea = document.createElement('textarea');
+            textarea.value = shareText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                document.getElementById('copy-btn-text').textContent = '已复制';
+                showToast('新闻标题与摘要已复制到剪贴板');
+            } catch (err) {
+                showToast('复制失败，请手动选择文本复制');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // -------------------- 11. 轻提示 Toast --------------------
+        let toastTimer = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = msg;
+            toast.classList.remove('hidden');
+
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // -------------------- 12. 页面初始化渲染 --------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            renderCategoryTabs();
+            renderBreakingTicker();
+            renderNewsFeed();
+            renderTimeline();
+            renderTrendingTopics();
         });
     </script>
 </body>
